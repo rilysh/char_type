@@ -1,0 +1,39 @@
+** char_type
+Inline-able ctypes for C++
+
+** Usage
+#+begin_src cpp
+#include <iostream>
+#include <string>
+
+#include "char_type.h"
+
+template <typename Ty, typename =
+	  std::enable_if_t<std::is_same_v<Ty, std::string_view> ||
+			   std::is_same_v<Ty, std::string>, Ty>>
+static std::string make_lowercase(const Ty& source)
+{
+    std::string str;
+    for (const auto& c : source) {
+	str.push_back(char_type::tolower(static_cast<int>(c)));
+    }
+
+    return (str);
+}
+
+int main(int argc, char **argv)
+{
+    std::cout << make_lowercase(std::string_view{"HELLO WORLD"}) << '\n';
+}
+#+end_src
+
+*** Why?
+Currently to use ctypes in C++, we need to use
+the =cctype= library provided by the STL. Issue
+with the STL =cctype= library is that it doesn't
+inline function calls. They're just directly being
+used from the libc, and cctype is just a type-safe
+wrapper for that. This creates performance overhead
+of that function call especially for larger strings.
+This library implements inline-able ctypes, directly
+to a header file.
